@@ -1,5 +1,13 @@
+# Python
 __pycache__/
 *.pyc
-.DS_Store
+*.pyo
+*.pyd
+.venv/
+env/
+venv/
+*.log
+
+# IDE
+.vscode/
 .idea/
-chromedriver.exe

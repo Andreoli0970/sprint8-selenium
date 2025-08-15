@@ -1,67 +1,64 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import data
 
 class UrbanRoutesPage:
-
     def __init__(self, driver):
         self.driver = driver
+        self.wait = WebDriverWait(driver, 10)
 
-    # Localizadores
-    FROM_INPUT = (By.ID, "from")
-    TO_INPUT = (By.ID, "to")
-    COMFORT_BTN = (By.XPATH, "//button[contains(@class, 'comfort')]")
-    PHONE_INPUT = (By.CLASS_NAME, "phone-input")
-    CODE_INPUT = (By.ID, "code")
-    ADD_CARD_BTN = (By.XPATH, "//button[contains(text(), 'Adicionar')]")
-    CARD_NUMBER_INPUT = (By.XPATH, "//input[@placeholder='Número do cartão']")
-    CARD_DATE_INPUT = (By.XPATH, "//input[@placeholder='MM/AA']")
-    CARD_CVV_INPUT = (By.XPATH, "//input[@placeholder='CVV']")
-    COMMENT_INPUT = (By.XPATH, "//textarea[@placeholder='Comentário']")
-    BLANKET_SWITCH = (By.XPATH, "//div[@class='switch blanket']")
-    BLANKET_ACTIVE = (By.XPATH, "//div[@class='switch blanket active']")
-    ICE_CREAM_PLUS_BTN = (By.XPATH, "//div[@class='counter ice-cream']//button[@class='plus']")
-    BOOK_BTN = (By.XPATH, "//button[contains(text(), 'Reservar')]")
-    
-    # Métodos
-    def enter_locations(self, from_addr, to_addr):
-        self.driver.find_element(*self.FROM_INPUT).send_keys(from_addr)
-        self.driver.find_element(*self.TO_INPUT).send_keys(to_addr)
-        time.sleep(1)
+    def set_route(self, address_from, address_to):
+        from_field = self.wait.until(EC.element_to_be_clickable((By.ID, "from")))
+        from_field.clear()
+        from_field.send_keys(address_from)
+        from_field.send_keys(Keys.RETURN)
 
-    def select_comfort_plan(self):
-        comfort = self.driver.find_element(*self.COMFORT_BTN)
-        if "active" not in comfort.get_attribute("class"):
-            comfort.click()
-            time.sleep(0.5)
+        to_field = self.wait.until(EC.element_to_be_clickable((By.ID, "to")))
+        to_field.clear()
+        to_field.send_keys(address_to)
+        to_field.send_keys(Keys.RETURN)
 
-    def enter_phone(self, phone):
-        self.driver.find_element(*self.PHONE_INPUT).send_keys(phone)
+    def get_from(self):
+        return self.driver.find_element(By.ID, "from").get_attribute("value")
 
-    def enter_sms_code(self, code):
-        self.driver.find_element(*self.CODE_INPUT).send_keys(code)
+    def get_to(self):
+        return self.driver.find_element(By.ID, "to").get_attribute("value")
 
-    def add_credit_card(self, number, date, cvv):
-        self.driver.find_element(*self.ADD_CARD_BTN).click()
-        time.sleep(0.5)
-        self.driver.find_element(*self.CARD_NUMBER_INPUT).send_keys(number)
-        self.driver.find_element(*self.CARD_DATE_INPUT).send_keys(date)
-        cvv_field = self.driver.find_element(*self.CARD_CVV_INPUT)
-        cvv_field.send_keys(cvv)
-        cvv_field.send_keys(Keys.TAB)
-        time.sleep(0.5)
+    def select_comfort_tariff(self):
+        comfort_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//div[contains(text(), 'Comfort')]")))
+        comfort_button.click()
 
-    def add_comment(self, comment):
-        self.driver.find_element(*self.COMMENT_INPUT).send_keys(comment)
+    def enter_phone_number(self, phone_number, code):
+        phone_field = self.wait.until(EC.element_to_be_clickable((By.ID, "phone")))
+        phone_field.clear()
+        phone_field.send_keys(phone_number)
+
+        code_field = self.wait.until(EC.element_to_be_clickable((By.ID, "code")))
+        code_field.clear()
+        code_field.send_keys(code)
+
+    def add_credit_card(self, number, date, code):
+        self.wait.until(EC.element_to_be_clickable((By.ID, "add-card"))).click()
+        number_field = self.wait.until(EC.element_to_be_clickable((By.ID, "number")))
+        number_field.send_keys(number)
+        date_field = self.driver.find_element(By.ID, "date")
+        date_field.send_keys(date)
+        code_field = self.driver.find_element(By.ID, "code")
+        code_field.send_keys(code)
+        code_field.send_keys(Keys.TAB)  # tira foco para ativar botão
+        self.driver.find_element(By.XPATH, "//button[contains(text(), 'Adicionar')]").click()
+
+    def set_driver_message(self, message):
+        message_field = self.wait.until(EC.element_to_be_clickable((By.ID, "comment")))
+        message_field.send_keys(message)
 
     def request_blanket_and_tissues(self):
-        self.driver.find_element(*self.BLANKET_SWITCH).click()
+        blanket_toggle = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@class='blanket-toggle']")))
+        blanket_toggle.click()
 
-    def order_ice_creams(self, quantity):
+    def add_ice_creams(self, quantity):
         for _ in range(quantity):
-            self.driver.find_element(*self.ICE_CREAM_PLUS_BTN).click()
-            time.sleep(0.3)
-
-    def book_taxi(self):
-        self.driver.find_element(*self.BOOK_BTN).click()
-        time.sleep(2)
+            ice_cream_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@class='add-ice-cream']")))
+            ice_cream_button.click()
